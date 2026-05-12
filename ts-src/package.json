@@ -1,0 +1,42 @@
+{
+  "name": "substrai-promptops",
+  "version": "0.1.0",
+  "description": "Infrastructure-as-Code framework for prompt engineering lifecycle management",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "prompt-engineering",
+    "llm",
+    "infrastructure-as-code",
+    "versioning",
+    "testing",
+    "deployment",
+    "serverless",
+    "aws-lambda",
+    "mlops",
+    "genai",
+    "prompts",
+    "semantic-versioning",
+    "regression-testing"
+  ],
+  "author": "Gaurav Singh <gaurav@substrai.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/substrai/promptops"
+  },
+  "homepage": "https://github.com/substrai/promptops",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
