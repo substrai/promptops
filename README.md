@@ -1,44 +1,27 @@
 # PromptOps
 
-> **Infrastructure-as-Code for Prompt Engineering** — define prompts as versioned, tested, deployed infrastructure with semantic versioning, environment promotion, regression testing, and multi-model targeting.
+**Infrastructure-as-Code for prompt engineering lifecycle management.**
 
-[![PyPI](https://img.shields.io/pypi/v/substrai-promptops)](https://pypi.org/project/substrai-promptops/)
-[![npm](https://img.shields.io/npm/v/substrai-promptops)](https://www.npmjs.com/package/substrai-promptops)
+> Built by [SubstrAI](https://github.com/substrai) — Open-source GenAI frameworks for serverless infrastructure.
+
+[![PyPI version](https://badge.fury.io/py/substrai-promptops.svg)](https://pypi.org/project/substrai-promptops/)
+[![npm version](https://badge.fury.io/js/substrai-promptops.svg)](https://www.npmjs.com/package/substrai-promptops)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-## Why PromptOps?
+## The Problem
 
-Prompts are the most critical component of any LLM application, yet they're treated as unmanaged strings in code. PromptOps is the first framework that treats prompts as **first-class infrastructure**:
+Prompts are the most critical component of any LLM application, yet they're treated as unmanaged strings in code:
 
-- **Semantic Versioning** — patch (wording), minor (new variables), major (schema change)
-- **Regression Testing** — golden datasets with assertions, run before every deploy
-- **Environment Promotion** — dev → staging → prod with approval gates
-- **A/B Testing** — route traffic to prompt variants, compare metrics, auto-promote winners
-- **Multi-Model Targeting** — same logical prompt, optimized variants per model
-- **Cost Estimation** — predict token usage and cost before deploying
-- **Immutable Endpoints** — each prompt version gets a unique API endpoint
-- **Audit Trail** — full history of who changed what, when, and why
+- No versioning — changes require full redeploy
+- No regression testing — edits silently degrade quality
+- No environment promotion — same prompt in dev and prod
+- No cost estimation — changes can 10x token usage without warning
+- No audit trail — who changed what, when, and why?
 
-## Installation
+## The Solution
 
-```bash
-# Python
-pip install substrai-promptops
-
-# With AWS support
-pip install substrai-promptops[aws]
-```
-
-## Quick Start
-
-### 1. Initialize a Project
-
-```bash
-promptops init my-prompts
-cd my-prompts
-```
-
-### 2. Define a Prompt
+PromptOps treats prompts as **first-class infrastructure** — versioned, tested, deployed artifacts with typed schemas:
 
 ```yaml
 # prompts/summarize.yaml
@@ -57,10 +40,6 @@ input:
     max_words:
       type: integer
       default: 100
-    style:
-      type: enum
-      values: [executive, technical, casual]
-      default: executive
 
 output:
   schema:
@@ -70,11 +49,8 @@ output:
       type: array
 
 template: |
-  Summarize the following document in {style} style,
-  using no more than {max_words} words.
-
+  Summarize the following document in {max_words} words or less.
   Document: {document}
-
   Respond in JSON: {"summary": "...", "key_points": ["..."]}
 
 settings:
@@ -82,7 +58,156 @@ settings:
   max_tokens: 2000
 ```
 
-### 3. Write Tests
+## Features
+
+- **Semantic Versioning** — patch (wording), minor (new variables), major (schema change)
+- **Regression Testing** — golden datasets with assertions, run before every deploy
+- **Environment Promotion** — dev → staging → prod with approval gates
+- **A/B Testing** — route traffic to prompt variants, compare metrics, auto-promote winners
+- **Multi-Model Targeting** — same logical prompt, optimized variants per model
+- **Cost-Aware Routing** — auto-select cheapest model meeting quality threshold
+- **Fallback Chains** — automatic model failover with retries
+- **Token Optimization** — detect waste, suggest compression
+- **Cost Estimation** — predict token usage and cost before deploying
+- **Immutable Endpoints** — each prompt version gets a unique API endpoint
+- **Breaking Change Detection** — auto-detect schema incompatibilities
+- **Quality Drift Detection** — alert when prompt quality degrades over time
+- **Audit Trail** — full history of who changed what, when, and why
+- **Usage Quotas** — per-team/per-user rate limits and budget caps
+- **Alert System** — notifications on quality drops, cost spikes, errors
+
+## Installation
+
+### Python (primary)
+
+```bash
+pip install substrai-promptops
+```
+
+With AWS support:
+
+```bash
+pip install "substrai-promptops[aws]"
+```
+
+### npm
+
+```bash
+npm install substrai-promptops
+```
+
+## Quick Start
+
+### Python (full CLI experience)
+
+```bash
+# Install
+pip install substrai-promptops
+
+# Scaffold a new project
+promptops init my-prompts
+cd my-prompts
+
+# Validate prompt definitions
+promptops validate
+
+# Run regression tests
+promptops test
+
+# Estimate costs
+promptops cost-estimate
+
+# Deploy to dev
+promptops deploy --env dev
+
+# Promote to production
+promptops promote summarize --from dev --to prod
+```
+
+### Python SDK Usage
+
+```python
+from promptops import PromptClient
+
+client = PromptClient(env="prod", prompts_dir="./prompts")
+
+# Invoke a versioned prompt
+result = client.invoke(
+    prompt="summarize",
+    version="latest",
+    inputs={
+        "document": "Long document text here...",
+        "max_words": 150,
+    }
+)
+
+print(result.output)       # Rendered prompt (or LLM response in production)
+print(result.cost)         # Estimated cost
+print(result.latency_ms)   # Latency
+print(result.version)      # Resolved version
+```
+
+### TypeScript (runtime SDK)
+
+```bash
+npm install substrai-promptops
+```
+
+```typescript
+import { PromptDefinition, PromptClient, PromptVersion } from "substrai-promptops";
+
+// Define a prompt
+const definition = new PromptDefinition({
+  name: "summarize",
+  version: "1.0.0",
+  template: "Summarize in {max_words} words: {document}",
+  input: {
+    schema: {
+      document: { type: "string", required: true },
+      max_words: { type: "integer", default: 100 },
+    },
+  },
+  output: {
+    schema: {
+      summary: { type: "string" },
+      key_points: { type: "array" },
+    },
+  },
+  settings: { temperature: 0.3, max_tokens: 2000 },
+});
+
+// Render the prompt
+const rendered = definition.render({ document: "Your text here...", max_words: 50 });
+
+// Estimate cost
+const cost = definition.estimateCost({ document: "Your text here...", max_words: 50 });
+console.log(`Estimated cost: $${cost.toFixed(6)}`);
+```
+
+### Key Differences
+
+| Capability | Python | TypeScript |
+|-----------|--------|------------|
+| CLI (init, validate, test, deploy) | ✅ Included | ❌ Use Python CLI |
+| Project scaffolding | `promptops init` | Manual setup |
+| Runtime SDK | ✅ Full | ✅ Full |
+| Schema validation | ✅ Full | ✅ Full |
+| Version management | ✅ Full | ✅ Full |
+| Testing assertions | ✅ Full | ✅ Full |
+
+## Core Concepts
+
+### Prompt Definitions
+
+```python
+from promptops import PromptDefinition
+
+definition = PromptDefinition.from_file("prompts/summarize.yaml")
+rendered = definition.render({"document": "Hello world", "max_words": 50})
+cost = definition.estimate_cost({"document": "Hello world", "max_words": 50})
+```
+
+### Regression Testing
 
 ```yaml
 # tests/summarize_tests.yaml
@@ -113,71 +238,103 @@ evaluation:
   on_failure: block_deploy
 ```
 
-### 4. Validate & Test
+### A/B Experiments
 
-```bash
-promptops validate
-promptops test
-promptops cost-estimate
+```yaml
+# experiments/summarize-v2-test.yaml
+experiment:
+  name: "summarize-v2-quality-test"
+  prompt: summarize
+  duration_hours: 72
+
+  variants:
+    - name: control
+      version: "1.2.0"
+      traffic: 70
+    - name: treatment
+      version: "2.0.0-rc1"
+      traffic: 30
+
+  success_criteria:
+    - metric: quality_score
+      condition: "treatment > control"
+      confidence: 0.95
+
+  on_success: promote_treatment
+  on_failure: keep_control
 ```
 
-### 5. Use in Application
+### Multi-Model Routing
 
 ```python
-from promptops import PromptClient
+from promptops.models import ModelRouter, RoutingStrategy
 
-client = PromptClient(env="prod", prompts_dir="./prompts")
-
-result = client.invoke(
-    prompt="summarize",
-    version="latest",
-    inputs={
-        "document": "Long document text here...",
-        "max_words": 150,
-        "style": "executive"
-    }
+router = ModelRouter(strategy=RoutingStrategy.COST_OPTIMIZED)
+decision = router.route(
+    input_tokens=500,
+    output_tokens=200,
+    candidates=["bedrock/claude-3-haiku", "bedrock/claude-3-sonnet", "bedrock/claude-3-opus"],
+    quality_threshold=0.85,
 )
-
-print(result.output)       # Rendered prompt (or LLM response in production)
-print(result.cost)         # Estimated cost
-print(result.latency_ms)   # Latency
+print(decision.selected_model)   # bedrock/claude-3-haiku
+print(decision.estimated_cost)   # $0.000xxx
 ```
 
-## CLI Reference
+### Fallback Chains
+
+```python
+from promptops.models import FallbackChain
+
+chain = FallbackChain(
+    models=["bedrock/claude-3-sonnet", "bedrock/claude-3-haiku", "bedrock/amazon-titan-text"],
+    max_retries_per_model=1,
+)
+result = chain.execute(invoke_fn, rendered_prompt)
+# Auto-falls back if primary model fails
+```
+
+### Breaking Change Detection
+
+```python
+from promptops.testing import BreakingChangeDetector
+
+detector = BreakingChangeDetector()
+report = detector.detect(old_definition, new_definition)
+print(report.has_breaking_changes)  # True/False
+print(report.recommended_bump)      # MAJOR/MINOR/PATCH
+```
+
+## CLI Commands
 
 | Command | Description |
 |---------|-------------|
-| `promptops init [name]` | Scaffold new project |
+| `promptops init [name]` | Scaffold a new project |
 | `promptops validate` | Validate all prompt definitions |
 | `promptops test` | Run regression tests |
-| `promptops test --prompt summarize` | Test specific prompt |
+| `promptops test --adversarial` | Run adversarial test suite |
 | `promptops cost-estimate` | Estimate costs for all prompts |
 | `promptops deploy --env dev` | Deploy to environment |
 | `promptops promote [prompt] --to prod` | Promote between environments |
 | `promptops rollback [prompt] --to v1.2.0` | Rollback to version |
 | `promptops status` | Show deployment status |
 
-## Architecture
+## Benchmarks (Real AWS Bedrock)
 
-```
-Input → [Resolve Version] → [Validate Schema] → [Render Template] → [Invoke Model]
-                                                                          ↓
-                                                                    [Validate Output]
-                                                                          ↓
-                                                                    [Log + Metrics]
-```
+| Metric | Value |
+|--------|-------|
+| Framework overhead | 0.006 ms per invocation |
+| Overhead as % of LLM call | 0.00% (negligible) |
+| Template rendering | 0.002 ms |
+| Model routing decision | 4.3 μs |
+| Schema compliance on real output | PASS (1.00) |
+| Injection detection | BLOCKED adversarial input |
+| Fallback chain recovery | SUCCESS |
 
-## Prompt Lifecycle
-
-```
-Author (YAML) → Validate → Test → Version → Deploy Dev → Promote Staging → Quality Gate → Prod
-                                                                                              ↓
-                                                                                    Monitor & Rollback
-```
+See [benchmarks/RESULTS.md](benchmarks/RESULTS.md) for full details.
 
 ## Ecosystem Integration
 
-PromptOps integrates with the Substrai ecosystem:
+PromptOps integrates with the SubstrAI ecosystem:
 
 ```python
 from lambdallm import handler, Model
@@ -205,133 +362,21 @@ def lambda_handler(event, context):
 | Environment promotion | No | No | No | **dev → staging → prod** |
 | Cost estimation | No | No | No | **Built-in** |
 | A/B testing | No | No | Basic | **Full framework** |
-| Multi-model targeting | No | No | No | **Model variants** |
-| Immutable endpoints | No | No | No | **Yes** |
+| Multi-model routing | No | No | No | **Cost-aware** |
+| Fallback chains | No | No | No | **Automatic** |
+| Breaking change detection | No | No | No | **Auto-detect** |
+| Quality drift detection | No | No | No | **Sliding window** |
 | Rollback | No | No | No | **One command** |
+| Usage quotas | No | No | No | **Per-team/user** |
 | Open source | No | No | No | **MIT** |
-
-
-## TypeScript / npm Usage
-
-### Installation
-
-```bash
-npm install substrai-promptops
-```
-
-### Define and Invoke Prompts
-
-```typescript
-import { PromptDefinition, PromptClient, PromptVersion } from "substrai-promptops";
-
-// Define a prompt
-const definition = new PromptDefinition({
-  name: "summarize",
-  version: "1.0.0",
-  template: "Summarize in {max_words} words: {document}",
-  input: {
-    schema: {
-      document: { type: "string", required: true },
-      max_words: { type: "integer", default: 100 },
-    },
-  },
-  output: {
-    schema: {
-      summary: { type: "string" },
-      key_points: { type: "array" },
-    },
-  },
-  settings: { temperature: 0.3, max_tokens: 2000 },
-});
-
-// Render the prompt
-const rendered = definition.render({ document: "Your text here...", max_words: 50 });
-console.log(rendered);
-
-// Estimate cost before invoking
-const cost = definition.estimateCost({ document: "Your text here...", max_words: 50 });
-console.log(`Estimated cost: $${cost.toFixed(6)}`);
-```
-
-### Version Management
-
-```typescript
-import { PromptVersion, VersionRange } from "substrai-promptops";
-
-const v = PromptVersion.parse("1.2.3");
-console.log(v.bumpMinor().toString()); // "1.3.0"
-console.log(v.bumpMajor().toString()); // "2.0.0"
-
-// Version ranges for resolution
-const range = VersionRange.compatible("1.2");
-console.log(range.matches(PromptVersion.parse("1.3.0"))); // true
-console.log(range.matches(PromptVersion.parse("2.0.0"))); // false
-```
-
-### Client with Registry
-
-```typescript
-import { PromptClient, PromptDefinition } from "substrai-promptops";
-
-const client = new PromptClient({ env: "prod" });
-
-// Register prompts
-client.register(new PromptDefinition({
-  name: "summarize",
-  version: "1.0.0",
-  template: "Summarize: {document}",
-  input: { schema: { document: { type: "string", required: true } } },
-  output: { schema: { summary: { type: "string" } } },
-}));
-
-// Invoke with version resolution
-const result = client.invoke("summarize", { document: "Hello world" });
-console.log(result.output);      // rendered prompt
-console.log(result.cost);        // estimated cost
-console.log(result.version);     // resolved version
-console.log(result.success);     // true/false
-```
-
-### Schema Validation
-
-```typescript
-import { InputSchema } from "substrai-promptops";
-
-const schema = InputSchema.fromDict({
-  document: { type: "string", required: true, max_length: 50000 },
-  max_words: { type: "integer", default: 100, min: 10, max: 1000 },
-  style: { type: "enum", values: ["executive", "technical"], default: "executive" },
-});
-
-const errors = schema.validate({ document: "test", max_words: 50 });
-// errors = [] (valid)
-
-const invalid = schema.validate({ max_words: 5000 });
-// invalid = ["Field document is required", "Field max_words must be <= 1000"]
-```
-
-### Testing Assertions
-
-```typescript
-import { TestRunner } from "substrai-promptops";
-
-const runner = new TestRunner();
-
-// Check output quality
-const result1 = runner.runAssertion(
-  { type: "schema_valid" },
-  JSON.stringify({ summary: "test", key_points: ["a"] })
-);
-console.log(result1.passed); // true
-
-// Detect injection
-const result2 = runner.runAssertion(
-  { type: "does_not_contain", values: ["system prompt", "ignore"] },
-  "Here is a normal summary of the document."
-);
-console.log(result2.passed); // true
-```
 
 ## License
 
-MIT © [Gaurav Singh](https://github.com/substrai)
+MIT — see [LICENSE](LICENSE)
+
+## Author
+
+**Gaurav Kumar Sinha** — Founder, [SubstrAI](https://github.com/substrai)
+
+- Email: gaurav@substrai.dev
+- GitHub: [@substrai](https://github.com/substrai)
