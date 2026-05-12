@@ -210,6 +210,128 @@ def lambda_handler(event, context):
 | Rollback | No | No | No | **One command** |
 | Open source | No | No | No | **MIT** |
 
+
+## TypeScript / npm Usage
+
+### Installation
+
+```bash
+npm install substrai-promptops
+```
+
+### Define and Invoke Prompts
+
+```typescript
+import { PromptDefinition, PromptClient, PromptVersion } from "substrai-promptops";
+
+// Define a prompt
+const definition = new PromptDefinition({
+  name: "summarize",
+  version: "1.0.0",
+  template: "Summarize in {max_words} words: {document}",
+  input: {
+    schema: {
+      document: { type: "string", required: true },
+      max_words: { type: "integer", default: 100 },
+    },
+  },
+  output: {
+    schema: {
+      summary: { type: "string" },
+      key_points: { type: "array" },
+    },
+  },
+  settings: { temperature: 0.3, max_tokens: 2000 },
+});
+
+// Render the prompt
+const rendered = definition.render({ document: "Your text here...", max_words: 50 });
+console.log(rendered);
+
+// Estimate cost before invoking
+const cost = definition.estimateCost({ document: "Your text here...", max_words: 50 });
+console.log(`Estimated cost: $${cost.toFixed(6)}`);
+```
+
+### Version Management
+
+```typescript
+import { PromptVersion, VersionRange } from "substrai-promptops";
+
+const v = PromptVersion.parse("1.2.3");
+console.log(v.bumpMinor().toString()); // "1.3.0"
+console.log(v.bumpMajor().toString()); // "2.0.0"
+
+// Version ranges for resolution
+const range = VersionRange.compatible("1.2");
+console.log(range.matches(PromptVersion.parse("1.3.0"))); // true
+console.log(range.matches(PromptVersion.parse("2.0.0"))); // false
+```
+
+### Client with Registry
+
+```typescript
+import { PromptClient, PromptDefinition } from "substrai-promptops";
+
+const client = new PromptClient({ env: "prod" });
+
+// Register prompts
+client.register(new PromptDefinition({
+  name: "summarize",
+  version: "1.0.0",
+  template: "Summarize: {document}",
+  input: { schema: { document: { type: "string", required: true } } },
+  output: { schema: { summary: { type: "string" } } },
+}));
+
+// Invoke with version resolution
+const result = client.invoke("summarize", { document: "Hello world" });
+console.log(result.output);      // rendered prompt
+console.log(result.cost);        // estimated cost
+console.log(result.version);     // resolved version
+console.log(result.success);     // true/false
+```
+
+### Schema Validation
+
+```typescript
+import { InputSchema } from "substrai-promptops";
+
+const schema = InputSchema.fromDict({
+  document: { type: "string", required: true, max_length: 50000 },
+  max_words: { type: "integer", default: 100, min: 10, max: 1000 },
+  style: { type: "enum", values: ["executive", "technical"], default: "executive" },
+});
+
+const errors = schema.validate({ document: "test", max_words: 50 });
+// errors = [] (valid)
+
+const invalid = schema.validate({ max_words: 5000 });
+// invalid = ["Field document is required", "Field max_words must be <= 1000"]
+```
+
+### Testing Assertions
+
+```typescript
+import { TestRunner } from "substrai-promptops";
+
+const runner = new TestRunner();
+
+// Check output quality
+const result1 = runner.runAssertion(
+  { type: "schema_valid" },
+  JSON.stringify({ summary: "test", key_points: ["a"] })
+);
+console.log(result1.passed); // true
+
+// Detect injection
+const result2 = runner.runAssertion(
+  { type: "does_not_contain", values: ["system prompt", "ignore"] },
+  "Here is a normal summary of the document."
+);
+console.log(result2.passed); // true
+```
+
 ## License
 
 MIT © [Gaurav Singh](https://github.com/substrai)
