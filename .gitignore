@@ -43,3 +43,4 @@ htmlcov/
 # Distribution
 *.tar.gz
 *.whl
+node_modules/
