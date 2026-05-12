@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "substrai-promptops"
+version = "0.1.0"
+description = "Infrastructure-as-Code framework for prompt engineering lifecycle management"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Gaurav Singh", email = "gaurav@substrai.dev"},
+]
+keywords = [
+    "prompt-engineering",
+    "llm",
+    "infrastructure-as-code",
+    "versioning",
+    "testing",
+    "deployment",
+    "serverless",
+    "aws-lambda",
+    "mlops",
+    "genai",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+aws = ["boto3>=1.28.0"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "black>=23.0", "ruff>=0.1.0"]
+all = ["boto3>=1.28.0", "pytest>=7.0"]
+
+[project.scripts]
+promptops = "promptops.cli.main:main"
+
+[project.urls]
+Homepage = "https://github.com/substrai/promptops"
+Repository = "https://github.com/substrai/promptops"
+Issues = "https://github.com/substrai/promptops/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
