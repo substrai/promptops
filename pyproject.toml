@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "substrai-promptops"
-version = "0.6.0"
+version = "0.7.0"
 description = "Infrastructure-as-Code framework for prompt engineering lifecycle management"
 readme = "README.md"
 license = {text = "MIT"}
