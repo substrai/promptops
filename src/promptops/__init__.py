@@ -11,7 +11,7 @@ Usage:
     result = client.invoke("summarize", inputs={"document": "...", "max_words": 100})
 """
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 from promptops.core.prompt import Prompt, PromptDefinition
 from promptops.core.version import PromptVersion, VersionRange
